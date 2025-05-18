@@ -1,0 +1,35 @@
+name: CI Build Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    env:
+      DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+      DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Scala
+        uses: olafurpg/setup-scala@v13
+        with:
+          java-version: "openjdk@1.11.0"
+
+      - name: Build and Test with SBT
+        run: |
+          sbt clean compile test assembly
+
+      - name: Store JAR as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: traffic-weather-analytics-jar
+          path: target/scala-2.12/TrafficWeatherAnalytics-assembly-0.1.jar
